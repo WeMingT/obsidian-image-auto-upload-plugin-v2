@@ -82,6 +82,13 @@ export default class Helper {
       if (path === undefined) {
         path = match[4];
       }
+      // PR #161: 处理正则的第三种情况 ![image](https://xxxx)
+      if (name === undefined) {
+        name = match[5];
+      }
+      if (path === undefined) {
+        path = match[6];
+      }
 
       fileArray.push({
         path: path,

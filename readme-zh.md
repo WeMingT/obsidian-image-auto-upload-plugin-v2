@@ -48,6 +48,12 @@ image-auto-upload: true
 2. 相对路径，以./或../开头
 3. 尽可能简短的形式
 
+## 批量删除当前文件中的所有图床图片 (New!)
+
+输入 `ctrl+P` 呼出面板，输入 `Delete all images in current file` (删除当前文件中的所有图床图片)，点击回车。这将从远程服务器（PicGo/PicList）删除当前文件中所有通过此插件上传的图片，并从文档中移除这些图片的链接。
+
+**注意**：此功能需要正确配置删除接口（通常由 PicList 支持）。
+
 ## 批量下载网络图片到本地
 
 输入 `ctrl+P` 呼出面板，输入 `download all images`，点击回车，就会自动开始下载。只在 win 进行过测试
@@ -90,6 +96,44 @@ image-auto-upload: true
 `Default uploader` 选择 `PicGo-Core`
 设置路径，默认为空，使用环境变量
 也可以设置自定义路径
+
+## 图片上传缓存 (New!)
+
+你可以在设置中开启 "开启图片上传缓存" (Enable image cache) 选项。开启后，插件在上传图片前会计算图片的 Hash 值。如果相同的图片之前已经上传过，插件将直接使用缓存的 URL，而不会再次上传。这对于多次转换文章时避免重复上传非常有用。
+
+## 链接替换 (New!)
+
+此功能允许你根据自定义规则替换笔记中的链接。当你需要将原始文章链接替换为自己的博客链接或转换后的图片链接时非常有用。
+
+### 功能特性
+- **JSON 配置**：使用 JSON 格式配置规则，方便分享和备份。
+- **配置管理**：支持创建多个配置（Profile），例如“博客用替换规则”、“CSDN用替换规则”。
+- **正则支持**：支持使用正则表达式匹配复杂的链接模式。
+- **批量替换**：一键应用配置中的所有规则。
+
+### 使用方法
+1. 进入 **插件设置** -> **链接替换**。
+2. 编辑 JSON 配置。示例：
+```json
+[
+  {
+    "id": "blog-rules",
+    "name": "博客规则",
+    "enabled": true,
+    "rules": [
+      {
+        "id": "rule-1",
+        "pattern": "\\[.*?\\]\\(https://original-site.com/.*?\\)",
+        "replacement": "![[new-image.png]]",
+        "flags": "g",
+        "enabled": true
+      }
+    ]
+  }
+]
+```
+3. 打开笔记，按 `Ctrl/Cmd + P`，运行 **Image Auto Upload Plugin: Apply Link Replacement** 命令。
+4. 选择你要应用的配置。
 
 ## 常见问题
 

@@ -169,10 +169,18 @@ export default class PicGoUploader implements Uploader {
       this.plugin.saveSettings();
     }
 
+    // PR #181: 增强对 data.result 的类型判断和容错处理
+    const urls =
+      data.result && data.result.length > 0
+        ? typeof data.result === "string"
+          ? [data.result]
+          : data.result
+        : [];
+
     return {
       success: true,
       msg: "success",
-      result: typeof data.result == "string" ? [data.result] : data.result,
+      result: urls,
     };
   }
 

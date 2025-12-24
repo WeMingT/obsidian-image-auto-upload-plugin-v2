@@ -30,7 +30,7 @@ When you paste an image to Obsidian, this plugin will automatically upload your 
 
 You can set `image-auto-upload: false` in `frontmatter` to control one file.
 
-Supports ".png", ".jpg", ".jpeg", ".bmp", ".gif", ".svg", ".tiff", ".webp", ".avif"
+Supports ".png", ".jpg", ".jpeg", ".bmp", ".gif", ".svg", ".tiff", ".webp", ".avif", ".heic"
 
 Due to the [bug](https://github.com/renmu123/obsidian-image-auto-upload-plugin/issues/2) in PicGo 2.3.0-beta7, you cannot use this feature. Please install another version of PicGo.
 
@@ -42,7 +42,77 @@ image-auto-upload: true
 
 ## Upload all local images file by command
 
-press `ctrl+P` and input `upload all images`，enter, then will auto upload all local images
+press `ctrl+P` and input `upload all images`，enter, then will auto upload all local images.
+
+**New: Upload progress display** - Shows real-time upload progress with current file name and count (e.g., "Uploading (1/10): image.png").
+
+## Delete all uploaded images in current file (New!)
+
+press `ctrl+P` and input `Delete all images in current file`, enter. This will delete all images in the current file that have been uploaded via this plugin from the remote server (PicGo/PicList), and remove their links from the document.
+
+**Note**: This feature requires the delete API to be configured correctly (usually supported by PicList).
+
+## HTML Figure Format Output (New!)
+
+You can choose to output uploaded images as HTML `<figure>` format instead of standard Markdown format. This is useful for Hugo blogs or other static site generators that support figure captions.
+
+### Example
+
+Input: `![[image.webp|My Caption]]`
+
+Output (with figure format enabled):
+```html
+<figure style="text-align:center;">
+  <img src="https://your-image-url.webp" alt="image">
+  <figcaption style="margin-top:0.5rem;">My Caption</figcaption>
+</figure>
+```
+
+### Figure Format Settings
+
+- **Figure alignment**: Center, Left, or Right
+- **Caption display mode**: Only when caption provided, or always (use filename as fallback)
+- **Caption margin-top**: e.g., `0.5rem`, `8px`
+- **Caption font-size**: e.g., `0.9rem`, `14px`
+- **Caption color**: e.g., `#666666`, `gray`
+
+## Image Upload Cache (New!)
+
+You can enable the "Enable image cache" option in the settings. When enabled, the plugin will calculate the hash of the image before uploading. If the same image has been uploaded before, it will use the cached URL directly instead of uploading it again. This is useful for avoiding duplicate uploads when converting articles multiple times.
+
+## Link Replacement (New!)
+
+This feature allows you to replace links in your notes based on custom rules. This is useful when you want to replace original article links with your own blog links or image links after conversion.
+
+### Features
+- **JSON Configuration**: Configure rules using JSON for easy sharing and backup.
+- **Profile Management**: Create different profiles for different purposes (e.g., "Blog Rules", "CSDN Rules").
+- **Regex Support**: Use regular expressions to match complex link patterns.
+- **Batch Replacement**: Apply all rules in a profile with a single command.
+
+### Usage
+1. Go to **Plugin Settings** -> **Link Replacement**.
+2. Edit the JSON configuration. Example:
+```json
+[
+  {
+    "id": "blog-rules",
+    "name": "Blog Rules",
+    "enabled": true,
+    "rules": [
+      {
+        "id": "rule-1",
+        "pattern": "\\[.*?\\]\\(https://original-site.com/.*?\\)",
+        "replacement": "![[new-image.png]]",
+        "flags": "g",
+        "enabled": true
+      }
+    ]
+  }
+]
+```
+3. Open a note, press `Ctrl/Cmd + P`, and run **Image Auto Upload Plugin: Apply Link Replacement**.
+4. Select the profile you want to apply.
 
 ## download all internet to local
 

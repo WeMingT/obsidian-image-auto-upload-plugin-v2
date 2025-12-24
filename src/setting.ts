@@ -1,6 +1,7 @@
 import { App, PluginSettingTab, Setting, Notice, Platform } from "obsidian";
 import imageAutoUploadPlugin from "./main";
 import { t } from "./lang/helpers";
+import { LinkReplacementProfile } from "./types";
 
 export interface PluginSettings {
   uploadByClipSwitch: boolean;
@@ -14,7 +15,17 @@ export interface PluginSettings {
   applyImage: boolean;
   deleteSource: boolean;
   imageDesc: "origin" | "none" | "removeDefault";
+  imageFormat: "markdown" | "figure";
+  // figure 样式参数
+  figureAlign: "center" | "left" | "right";
+  figureCaptionMode: "always" | "captionOnly";
+  figureCaptionMarginTop: string;
+  figureCaptionFontSize: string;
+  figureCaptionColor: string;
   remoteServerMode: boolean;
+  enableCache: boolean;
+  imageCache: { [hash: string]: string };
+  linkReplacementConfig: string;
   [propName: string]: any;
 }
 
@@ -30,7 +41,17 @@ export const DEFAULT_SETTINGS: PluginSettings = {
   newWorkBlackDomains: "",
   deleteSource: false,
   imageDesc: "origin",
+  imageFormat: "markdown",
+  // figure 样式默认值
+  figureAlign: "center",
+  figureCaptionMode: "captionOnly",
+  figureCaptionMarginTop: "0.5rem",
+  figureCaptionFontSize: "",
+  figureCaptionColor: "",
   remoteServerMode: false,
+  enableCache: false,
+  imageCache: {},
+  linkReplacementConfig: "[]",
 };
 
 export class SettingTab extends PluginSettingTab {
@@ -58,6 +79,18 @@ export class SettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.uploadByClipSwitch)
           .onChange(async value => {
             this.plugin.settings.uploadByClipSwitch = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName(t("Enable image cache"))
+      .setDesc(t("Enable image cache desc"))
+      .addToggle(toggle =>
+        toggle
+          .setValue(this.plugin.settings.enableCache)
+          .onChange(async value => {
+            this.plugin.settings.enableCache = value;
             await this.plugin.saveSettings();
           })
       );
@@ -155,6 +188,93 @@ export class SettingTab extends PluginSettingTab {
           })
       );
 
+    // image format setting
+    new Setting(containerEl)
+      .setName(t("Image format"))
+      .setDesc(t("Image format desc"))
+      .addDropdown(cb =>
+        cb
+          .addOption("markdown", t("Markdown format"))
+          .addOption("figure", t("HTML figure format"))
+          .setValue(this.plugin.settings.imageFormat)
+          .onChange(async (value: "markdown" | "figure") => {
+            this.plugin.settings.imageFormat = value;
+            this.display();
+            await this.plugin.saveSettings();
+          })
+      );
+
+    // figure 样式参数（仅当选择 figure 格式时显示）
+    if (this.plugin.settings.imageFormat === "figure") {
+      new Setting(containerEl)
+        .setName(t("Figure align"))
+        .setDesc(t("Figure align desc"))
+        .addDropdown(cb =>
+          cb
+            .addOption("center", t("Center"))
+            .addOption("left", t("Left"))
+            .addOption("right", t("Right"))
+            .setValue(this.plugin.settings.figureAlign)
+            .onChange(async (value: "center" | "left" | "right") => {
+              this.plugin.settings.figureAlign = value;
+              await this.plugin.saveSettings();
+            })
+        );
+
+      new Setting(containerEl)
+        .setName(t("Caption display mode"))
+        .setDesc(t("Caption display mode desc"))
+        .addDropdown(cb =>
+          cb
+            .addOption("captionOnly", t("Caption only"))
+            .addOption("always", t("Always show"))
+            .setValue(this.plugin.settings.figureCaptionMode)
+            .onChange(async (value: "always" | "captionOnly") => {
+              this.plugin.settings.figureCaptionMode = value;
+              await this.plugin.saveSettings();
+            })
+        );
+
+      new Setting(containerEl)
+        .setName(t("Caption margin-top"))
+        .setDesc(t("Caption margin-top desc"))
+        .addText(text =>
+          text
+            .setPlaceholder("0.5rem")
+            .setValue(this.plugin.settings.figureCaptionMarginTop)
+            .onChange(async value => {
+              this.plugin.settings.figureCaptionMarginTop = value;
+              await this.plugin.saveSettings();
+            })
+        );
+
+      new Setting(containerEl)
+        .setName(t("Caption font-size"))
+        .setDesc(t("Caption font-size desc"))
+        .addText(text =>
+          text
+            .setPlaceholder("0.9rem")
+            .setValue(this.plugin.settings.figureCaptionFontSize)
+            .onChange(async value => {
+              this.plugin.settings.figureCaptionFontSize = value;
+              await this.plugin.saveSettings();
+            })
+        );
+
+      new Setting(containerEl)
+        .setName(t("Caption color"))
+        .setDesc(t("Caption color desc"))
+        .addText(text =>
+          text
+            .setPlaceholder("#666666")
+            .setValue(this.plugin.settings.figureCaptionColor)
+            .onChange(async value => {
+              this.plugin.settings.figureCaptionColor = value;
+              await this.plugin.saveSettings();
+            })
+        );
+    }
+
     new Setting(containerEl)
       .setName(t("Image size suffix"))
       .setDesc(t("Image size suffix Description"))
@@ -227,5 +347,39 @@ export class SettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           })
       );
+
+    containerEl.createEl("h2", { text: t("Link Replacement") });
+    
+    const exampleConfig = [
+      {
+        id: "example-1",
+        name: "Blog Rules",
+        enabled: true,
+        rules: [
+          {
+            id: "rule-1",
+            pattern: "\\[.*?\\]\\(https://zhuanlan.zhihu.com/p/.*?\\)",
+            replacement: "![[image.png]]",
+            flags: "g",
+            enabled: true
+          }
+        ]
+      }
+    ];
+
+    new Setting(containerEl)
+      .setName(t("Configuration"))
+      .setDesc(t("Link Replacement Config Desc"))
+      .addTextArea(textArea => {
+        textArea
+          .setValue(this.plugin.settings.linkReplacementConfig)
+          .setPlaceholder(JSON.stringify(exampleConfig, null, 2))
+          .onChange(async value => {
+            this.plugin.settings.linkReplacementConfig = value;
+            await this.plugin.saveSettings();
+          });
+        textArea.inputEl.rows = 15;
+        textArea.inputEl.cols = 50;
+      });
   }
 }

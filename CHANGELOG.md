@@ -1,3 +1,37 @@
+# 4.1.2 (2025.12.24)
+
+## 新功能
+
+1. **批量删除当前文件图片** - 新增 "Delete all images in current file" 命令。支持一键删除当前文档中所有已上传到图床的图片（需配合 PicList 使用），并自动清理文档中的图片链接。
+
+# 4.1.1 (2025.12.24)
+
+## 新功能
+
+1. **图片上传缓存** - 新增 "开启图片上传缓存" 选项。开启后，插件会缓存已上传图片的 Hash 值和 URL。当再次上传相同图片时，将直接使用缓存的 URL，避免重复上传占用图床空间。
+
+# 5.1.0 (2025.12.21)
+
+## 新功能
+
+1. **HTML Figure 格式输出** - 新增图片输出格式选项，支持将上传后的图片转换为 HTML `<figure>` 格式，带图注支持（适用于 Hugo/博客）
+   - 支持自定义对齐方式（居中/左/右）
+   - 支持自定义图注样式（margin-top, font-size, color）
+   - 支持图注显示模式（仅当有图注时/始终显示）
+   - 示例：`![[image.webp|拷贝漫画]]` → `<figure><img src="..."><figcaption>拷贝漫画</figcaption></figure>`
+
+2. **上传进度显示** - 执行 "Upload all images" 时显示实时上传进度
+   - 显示当前上传文件名和进度 (1/10)
+   - 上传完成后显示成功/失败统计
+
+3. **HEIC 图片格式支持** - 新增对 `.heic` 图片格式的支持
+
+## Bug 修复
+
+1. 修复 PicList 多图上传后无法获取 URL 的问题 (#181)
+2. 修复 `Cannot read properties of undefined (reading 'startsWith')` 错误 (#164)
+3. 修复正则的第三种情况 `![image](https://xxxx)` 未捕获的问题 (#161)
+
 # 5.0.0
 
 1. trash respect ob setting

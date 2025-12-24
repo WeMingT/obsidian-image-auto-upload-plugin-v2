@@ -1,5 +1,6 @@
 import { extname } from "path-browserify";
 import { Readable } from "stream";
+import { createHash } from "crypto";
 
 export interface IStringKeyMap<T> {
   [key: string]: T;
@@ -15,6 +16,7 @@ const IMAGE_EXT_LIST = [
   ".tiff",
   ".webp",
   ".avif",
+  ".heic",
 ];
 
 export function isAnImage(ext: string) {
@@ -88,4 +90,8 @@ export function arrayBufferToBuffer(arrayBuffer: ArrayBuffer) {
 
 export function uuid() {
   return Math.random().toString(36).slice(2);
+}
+
+export function getFileHash(buffer: Buffer): string {
+  return createHash("md5").update(buffer).digest("hex");
 }
